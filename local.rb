@@ -59,8 +59,8 @@ def addSiteFile(fd,list_def,list,site)
 end
 
 def isDirectConnectFunc(site)
-	status = if $directList.include?(site.to_sym.object_id) then true
-    elsif $blockList.include?(site.to_sym.object_id) then false
+    status = if $blockList.include?(site.to_sym.object_id) then false
+    elsif $directList.include?(site.to_sym.object_id) then true
     else true
     end
 end
@@ -224,17 +224,18 @@ module LocalServer
   end
 
   def unbind
-  	if @isDirectConnect and (not @isCompleted)
-  		puts "[WARNING] #{@remote_addr} direct connecting unbind,change to connecting by #{$server} proxy"
-  		@isDirectConnect = false
-  		reconnect $server, $remote_port
-  		return
-  	end
+    if @isDirectConnect and (not @isCompleted)
+      puts "[WARNING] #{@remote_addr} direct connecting unbind,change to connecting by #{$server} proxy"
+      @isDirectConnect = false
+      reconnect $server, $remote_port
+      return
+    end
     if @connector != nil
       @connector.close_connection_after_writing
       if not @isCompleted
         puts "[ERROR] #{@remote_addr} remote connecting unbind,connection close"
       end
+      puts "#{@remote_addr} connection close"
     end
 
   end
