@@ -65,9 +65,9 @@ def add2OtherDictFile(host,port)
 end
 
 def isProxyConnectFunc(site)
-  status = if $blockList.include?(site.to_sym.object_id) then false
-  elsif $directList.include?(site.to_sym.object_id) then true
-  else false
+  status = if $blockList.include?(site.to_sym.object_id) then true 
+  elsif $directList.include?(site.to_sym.object_id) then false
+  else true
   end
 end
 
