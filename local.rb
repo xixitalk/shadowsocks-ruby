@@ -46,6 +46,8 @@ $server = config['server']
 $remote_port = config['server_port'].to_i
 $port = config['local_port'].to_i
 
+puts "init config finished"
+
 $encrypt_table, $decrypt_table = get_table(key)
 
 def inet_ntoa(n)
@@ -66,7 +68,7 @@ def isDirectConnectFunc(site)
 end
 
 def isClassifyFunc(site)
-	status = if $directList.include?(site.to_sym.object_id) then true
+    status = if $directList.include?(site.to_sym.object_id) then true
     elsif $blockList.include?(site.to_sym.object_id) then true
     else false
     end
@@ -102,6 +104,7 @@ module LocalServer
       if not @server.isDirectConnect
         encrypt $decrypt_table, data
       end
+      @server.dataCount += data.size
       @server.send_data data
     end
     
@@ -110,7 +113,7 @@ module LocalServer
   	    #puts "#{__LINE__} #{@server.remote_addr} completed"
   	    if not isClassifyFunc(@server.remote_addr)
   	    	#puts "#{@server.remote_addr} is not classify"
-  	    	if @server.isDirectConnect
+  	    	if @server.isDirectConnect and @server.dataCount > 2000
   	    		cfg_file = File.open('direct.json','w')
   	    		addSiteFile(cfg_file,$directList_def,$directList,@server.remote_addr)
   	    	else
@@ -134,6 +137,7 @@ module LocalServer
   attr_accessor :cached_pieces
   attr_accessor :isDirectConnect
   attr_accessor :isCompleted
+  attr_accessor :dataCount
 
   def post_init
     #puts "local connected"
@@ -148,6 +152,7 @@ module LocalServer
     @server_using = $server
     @isDirectConnect = true
     @isCompleted = false
+    @dataCount = 0
   end
 
   def receive_data data
@@ -155,6 +160,7 @@ module LocalServer
       if not @isDirectConnect
         encrypt $encrypt_table, data
       end
+      @dataCount += data.size
       @connector.send_data data
       return
     end
@@ -235,7 +241,12 @@ module LocalServer
       if not @isCompleted
         puts "[ERROR] #{@remote_addr} remote connecting unbind,connection close"
       end
-      puts "#{@remote_addr} connection close"
+      puts "#{@remote_addr} connection close #{@dataCount}"
+      if (@dataCount < 2000) and (not isClassifyFunc(@remote_addr))
+        cfg_file = File.open('block.json','w')
+  	addSiteFile(cfg_file,$blockList_def,$blockList,@remote_addr)
+        cfg_file.close
+      end
     end
 
   end
