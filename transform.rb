@@ -1,6 +1,7 @@
 #!/usr/bin/ruby
 
 require 'json'
+require './domainRegex'
 
 cfg_file = File.open('direct.json')
 $directList =  JSON.parse(cfg_file.read)
@@ -24,7 +25,7 @@ IP_regex = /^(#{num}\.){3}#{num}$/
 
 #host_regex = /([\w-]+)\.([a-z]{2,3}).([a-z]{0,2})$/
 #host_regex = /([\w-]+)([.a-z]{3,5})([.a-z]{0,2})$/
-host_regex = /([\w-]+)([.abcdefghijklmnoprstuvwxyz]{3,5})([.a-z]{0,2})$/
+host_regex = getDomainRegex()
 
 $otherDict.each { |host,port|
   ret = IP_regex.match(host)

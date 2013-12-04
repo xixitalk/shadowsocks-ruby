@@ -24,6 +24,7 @@ require 'rubygems'
 require 'eventmachine'
 require 'json'
 require './encrypt'
+require './domainRegex'
 
 
 cfg_file = File.open('config.json')
@@ -55,7 +56,7 @@ $encrypt_table, $decrypt_table = get_table(key)
 num = /\d|[01]?\d\d|2[0-4]\d|25[0-5]/
 $IP_regex = /^(#{num}\.){3}#{num}$/
 
-$Host_regex = /([\w-]+)\.([a-z]{2,6})([\.a-z]{0,2})$/
+$Host_regex = getDomainRegex()
 
 def inet_ntoa(n)
     n.unpack("C*").join "."
