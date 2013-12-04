@@ -44,6 +44,7 @@ cfg_file.close
 cfg_file = File.open('other.json')
 $otherDict =  JSON.parse(cfg_file.read)
 cfg_file.close
+$otherDictDirtyFlag = false
 
 key = config['password']
 
@@ -62,12 +63,19 @@ def inet_ntoa(n)
     n.unpack("C*").join "."
 end
 
-def add2OtherDictFile(host,port)
+def add2OtherDict(host,port)
   if host == nil or port == nil then return end
   $otherDict[host] = port
-  cfg_file = File.open('other.json','w')
-  JSON.dump($otherDict,cfg_file)
-  cfg_file.close
+  $otherDictDirtyFlag = true
+end
+
+def writeOtherDict2File
+  if $otherDictDirtyFlag
+    cfg_file = File.open('other.json','w')
+    $otherDictDirtyFlag = false
+    JSON.dump($otherDict,cfg_file)
+    cfg_file.close
+  end
 end
 
 def isProxyConnectFunc(host)
@@ -229,7 +237,7 @@ module LocalServer
   def unbind
     if @connector != nil
       @connector.close_connection_after_writing
-      add2OtherDictFile(@remote_addr, @remote_port)
+      add2OtherDict(@remote_addr, @remote_port)
     end
 
   end
@@ -237,4 +245,8 @@ end
 
 EventMachine::run {
   EventMachine::start_server "0.0.0.0", $port, LocalServer
+  EventMachine.add_periodic_timer(60) do
+    writeOtherDict2File
+  end
 }
+
