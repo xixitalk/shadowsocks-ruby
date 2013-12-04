@@ -81,7 +81,7 @@ def isProxyConnectFunc(host)
   end
   status = if $blockList.include?(host_base.to_sym.object_id) then true 
   elsif $directList.include?(host_base.to_sym.object_id) then false
-  else true
+  else false 
   end
 end
 
@@ -149,7 +149,7 @@ module LocalServer
     @connector = nil
     @addr_to_send = ""
     @server_using = $server
-    @isProxyConnect = true
+    @isProxyConnect =false 
 
   end
 
