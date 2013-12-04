@@ -16,31 +16,48 @@ cfg_file = File.open('other.json')
 $otherDict =  JSON.parse(cfg_file.read)
 cfg_file.close
 
-puts "direct.json count: #{$directList.size}"
-puts "block.json count: #{$blockList.size}"
-puts "other.json count #{$otherDict.size}"
+directCount = $directList.size
+blockCount = $blockList.size
+
+num = /\d|[01]?\d\d|2[0-4]\d|25[0-5]/
+IP_regex = /^(#{num}\.){3}#{num}$/
+
+#host_regex = /([\w-]+)\.([a-z]{2,3}).([a-z]{0,2})$/
+#host_regex = /([\w-]+)([.a-z]{3,5})([.a-z]{0,2})$/
+host_regex = /([\w-]+)([.abcdefghijklmnoprstuvwxyz]{3,5})([.a-z]{0,2})$/
 
 $otherDict.each { |host,port|
-  if $directList_fast.include?(host.to_sym.object_id) or $blockList_fast.include?(host.to_sym.object_id)
+  ret = IP_regex.match(host)
+  host_base = host
+  if ret == nil
+     ret = host_regex.match(host)
+     if ret != nil
+       host_base = ret[0]
+     end
+  end
+# puts "#{host} #{host_base}";next
+  if $directList_fast.include?(host_base.to_sym.object_id) or $blockList_fast.include?(host_base.to_sym.object_id)
     puts "#{host} classify already"
     next 
   end
   ret = system("./connect -n -w 10 #{host} #{port}")
   if ret
     puts "#{host} #{port} ok"
-    if $directList.include?(host)
-      puts "#{host} existed"
+    if $directList.include?(host_base)
+      puts "#{host_base} existed"
     else
-      $directList.push(host)
-      puts "#{host} add to direct.json"
+      $directList.push(host_base)
+      $directList_fast.push(host_base.to_sym.object_id)
+      puts "#{host_base} add to direct.json"
     end
   else
     puts "#{host} #{port} fail"
-    if $blockList.include?(host)
-      puts "#{host} existed"
+    if $blockList.include?(host_base)
+      puts "#{host_base} existed"
     else
-      $blockList.push(host)
-      puts "#{host} add to block.json"
+      $blockList.push(host_base)
+      $blockList_fast.push(host_base.to_sym.object_id)
+      puts "#{host_base} add to block.json"
     end
   end
 }
@@ -52,8 +69,8 @@ cfg_file.close
 cfg_file = File.open('block.json','w')
 JSON.dump($blockList,cfg_file)
 cfg_file.close
-
-puts "direct.json count: #{$directList.size}"
-puts "block.json count: #{$blockList.size}"
+puts "*"*50
+puts "direct.json count: #{$directList.size} #{$directList.size-directCount} add"
+puts "block.json count: #{$blockList.size} #{$blockList.size-blockCount} add"
 
 

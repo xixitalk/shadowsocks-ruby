@@ -52,6 +52,11 @@ $port = config['local_port'].to_i
 
 $encrypt_table, $decrypt_table = get_table(key)
 
+num = /\d|[01]?\d\d|2[0-4]\d|25[0-5]/
+$IP_regex = /^(#{num}\.){3}#{num}$/
+
+$Host_regex = /([\w-]+)\.([a-z]{2,6})([\.a-z]{0,2})$/
+
 def inet_ntoa(n)
     n.unpack("C*").join "."
 end
@@ -64,9 +69,17 @@ def add2OtherDictFile(host,port)
   cfg_file.close
 end
 
-def isProxyConnectFunc(site)
-  status = if $blockList.include?(site.to_sym.object_id) then true 
-  elsif $directList.include?(site.to_sym.object_id) then false
+def isProxyConnectFunc(host)
+  host_base = host
+  ret = $IP_regex.match(host)
+  if ret == nil
+     ret = $Host_regex.match(host)
+     if ret != nil
+       host_base = ret[0]
+     end
+  end
+  status = if $blockList.include?(host_base.to_sym.object_id) then true 
+  elsif $directList.include?(host_base.to_sym.object_id) then false
   else true
   end
 end
