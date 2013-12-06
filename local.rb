@@ -102,9 +102,7 @@ end
 def isProxyConnectFunc(host)
   host_base = getHostBase(host)
   status = if $blockList_fast.include?(host_base.to_sym.object_id) then true 
-  elsif $directList_fast.include?(host_base.to_sym.object_id) then false
-  else false 
-  end
+  else false end 
 end
 
 module LocalServer

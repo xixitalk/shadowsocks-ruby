@@ -23,17 +23,12 @@ def getDomainRegex()
 end
 
 def getHostBase(host)
-  num = /\d|[01]?\d\d|2[0-4]\d|25[0-5]/
-  IP_regex = /^(#{num}\.){3}#{num}$/
   host_regex = getDomainRegex()
 
-  ret = IP_regex.match(host)
   host_base = host
-  if ret == nil
-     ret = host_regex.match(host)
-     if ret != nil
-       host_base = ret[0]
-     end
+  ret = host_regex.match(host)
+  if ret != nil
+    host_base = ret[0]
   end
   host_base
 end

@@ -34,6 +34,9 @@ $otherDict.each { |host,port|
      ret = host_regex.match(host)
      if ret != nil
        host_base = ret[0]
+     else
+       puts "#{host} maybe is not a host"
+       next
      end
   end
 # puts "#{host} #{host_base}";next
@@ -41,6 +44,7 @@ $otherDict.each { |host,port|
     puts "#{host} classify already"
     next 
   end
+  puts "#{host} #{port} connecting..."
   ret = system("./connect -n -w 10 #{host} #{port}")
   if ret
     puts "#{host} #{port} ok"
