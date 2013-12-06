@@ -44,6 +44,11 @@ cfg_file.close
 $otherDict =  {}
 
 key = config['password']
+if ARGV.include?("debug")
+$debug_flag = true
+else
+$debug_flag = false 
+end
 
 $server = config['server']
 $remote_port = config['server_port'].to_i
@@ -88,14 +93,17 @@ def checkHostConnectableProc
     host_base = getHostBase(host)
     if isClassify(host_base) then next end
     if hostIsConnectable(host,port)
-      $directList.push(hostbase)
-  	  $directList_fast.push(hostbase.to_sym.object_id)
+      $directList.push(host_base)
+  	  $directList_fast.push(host_base.to_sym.object_id)
     else
-  	  $blockList.push(hostbase)
-  	  $blockList_fast.push(hostbase.to_sym.object_id)
+  	  $blockList.push(host_base)
+  	  $blockList_fast.push(host_base.to_sym.object_id)
     end
   }
-  $otherDict = $otherDict-otherDict2
+  #$otherDict = $otherDict-otherDict2
+  otherDict2.each { |key,value|
+    $otherDict.delete(key)
+  }
 
 end
 
@@ -212,9 +220,9 @@ module LocalServer
         #p @addr_to_send
         @isProxyConnect = isProxyConnectFunc(@remote_addr)
         if @isProxyConnect
-          puts "connecting #{@remote_addr} via #{$server}"
+          puts "connecting #{@remote_addr} via #{$server}" if $debug_flag
         else
-          puts "direct connecting #{@remote_addr} from localhost"
+          puts "direct connecting #{@remote_addr} from localhost" if $debug_flag
         end
         send_data "\x05\x00\x00\x01\x00\x00\x00\x00" + [@remote_port].pack('s>')
         @stage = 4
