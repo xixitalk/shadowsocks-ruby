@@ -94,13 +94,13 @@ def checkHostConnectableProc
     if isClassify(host_base) then next end
     if hostIsConnectable(host,port)
       $directList.push(host_base)
-  	  $directList_fast.push(host_base.to_sym.object_id)
+      $directList_fast.push(host_base.to_sym.object_id)
     else
-  	  $blockList.push(host_base)
-  	  $blockList_fast.push(host_base.to_sym.object_id)
+      $blockList.push(host_base)
+      $blockList_fast.push(host_base.to_sym.object_id)
     end
   }
-  #$otherDict = $otherDict-otherDict2
+
   otherDict2.each { |key,value|
     $otherDict.delete(key)
   }
