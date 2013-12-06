@@ -25,7 +25,7 @@ require 'eventmachine'
 require 'json'
 require './encrypt'
 require './domainRegex'
-
+require './checkHost'
 
 cfg_file = File.open('config.json')
 config =  JSON.parse(cfg_file.read)
@@ -33,18 +33,15 @@ cfg_file.close
 
 cfg_file = File.open('direct.json')
 $directList =  JSON.parse(cfg_file.read)
-$directList.collect! { |x| x.to_sym.object_id}
+$directList_fast = $directList.collect { |x| x.to_sym.object_id}
 cfg_file.close
 
 cfg_file = File.open('block.json')
 $blockList =  JSON.parse(cfg_file.read)
-$blockList.collect! { |x| x.to_sym.object_id}
+$blockList_fast = $blockList.collect { |x| x.to_sym.object_id}
 cfg_file.close
 
-cfg_file = File.open('other.json')
-$otherDict =  JSON.parse(cfg_file.read)
-cfg_file.close
-$otherDictDirtyFlag = false
+$otherDict =  {}
 
 key = config['password']
 
@@ -63,40 +60,50 @@ def inet_ntoa(n)
     n.unpack("C*").join "."
 end
 
-def add2OtherDict(host,port)
-  if host == nil or port == nil then return end
-  $otherDict[host] = port
-  $otherDictDirtyFlag = true
+def writeList2File
+    cfg_file = File.open('direct.json','w')
+    JSON.dump($directList,cfg_file)
+    cfg_file.close
+    cfg_file = File.open('block.json','w')
+    JSON.dump($blockList,cfg_file)
+    cfg_file.close
 end
 
-def writeOtherDict2File
-  if $otherDictDirtyFlag
-    cfg_file = File.open('other.json','w')
-    $otherDictDirtyFlag = false
-    JSON.dump($otherDict,cfg_file)
-    cfg_file.close
-  end
+def isClassify(host_base)
+  ret = if $directList_fast.include?(host_base.to_sym.object_id) or $blockList_fast.include?(host_base.to_sym.object_id) then true
+        else false end
+end
+
+def add2OtherDict(host,port)
+  if host == nil or port == nil then return end
+  host_base = getHostBase(host)
+  if isClassify(host_base) then return end  
+  $otherDict[host] = port
+end
+
+def checkHostConnectableProc
+  if $otherDict.size==0 then return end
+  otherDict2 = $otherDict.clone
+  otherDict2.each { |host,port|
+    host_base = getHostBase(host)
+    if isClassify(host_base) then next end
+    if hostIsConnectable(host,port)
+      $directList.push(hostbase)
+  	  $directList_fast.push(hostbase.to_sym.object_id)
+    else
+  	  $blockList.push(hostbase)
+  	  $blockList_fast.push(hostbase.to_sym.object_id)
+    end
+  }
+  $otherDict = $otherDict-otherDict2
+
 end
 
 def isProxyConnectFunc(host)
-  host_base = host
-  ret = $IP_regex.match(host)
-  if ret == nil
-     ret = $Host_regex.match(host)
-     if ret != nil
-       host_base = ret[0]
-     end
-  end
-  status = if $blockList.include?(host_base.to_sym.object_id) then true 
-  elsif $directList.include?(host_base.to_sym.object_id) then false
+  host_base = getHostBase(host)
+  status = if $blockList_fast.include?(host_base.to_sym.object_id) then true 
+  elsif $directList_fast.include?(host_base.to_sym.object_id) then false
   else false 
-  end
-end
-
-def isClassifyFunc(site)
-  status = if $directList.include?(site.to_sym.object_id) then true
-  elsif $blockList.include?(site.to_sym.object_id) then true
-  else false
   end
 end
 
@@ -208,7 +215,7 @@ module LocalServer
         @isProxyConnect = isProxyConnectFunc(@remote_addr)
         if @isProxyConnect
           puts "connecting #{@remote_addr} via #{$server}"
-        else          
+        else
           puts "direct connecting #{@remote_addr} from localhost"
         end
         send_data "\x05\x00\x00\x01\x00\x00\x00\x00" + [@remote_port].pack('s>')
@@ -245,8 +252,15 @@ end
 
 EventMachine::run {
   EventMachine::start_server "0.0.0.0", $port, LocalServer
-  EventMachine.add_periodic_timer(60) do
-    writeOtherDict2File
+  EventMachine.add_periodic_timer(600) do
+    writeList2File
+    if File.exist?("./emexit")
+    	puts "eventmachine stopping"
+    	EventMachine.stop
+    end
+  end
+  EventMachine.add_periodic_timer(300) do
+    checkHostConnectableProc
   end
 }
 

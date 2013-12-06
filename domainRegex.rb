@@ -1,3 +1,4 @@
+#!/usr/bin/ruby
 
 $TopDomain = ['com','co','edu','gov','net','org','mil','info','name','xxx','mobi','tel','post','biz','pro']
 
@@ -19,4 +20,20 @@ def getDomainRegex()
   }
   domainString += ")"
   domainregex = /([\w-]+)\.#{domainString}\.?#{domainString}?$/
+end
+
+def getHostBase(host)
+  num = /\d|[01]?\d\d|2[0-4]\d|25[0-5]/
+  IP_regex = /^(#{num}\.){3}#{num}$/
+  host_regex = getDomainRegex()
+
+  ret = IP_regex.match(host)
+  host_base = host
+  if ret == nil
+     ret = host_regex.match(host)
+     if ret != nil
+       host_base = ret[0]
+     end
+  end
+  host_base
 end
