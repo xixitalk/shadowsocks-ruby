@@ -91,6 +91,7 @@ def checkHostConnectableProc
   otherDict2 = $otherDict.clone
   otherDict2.each { |host,port|
     host_base = getHostBase(host)
+    if host_base == nil then next end
     if isClassify(host_base) then next end
     if hostIsConnectable(host,port)
       $directList.push(host_base)

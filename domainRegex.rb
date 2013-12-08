@@ -22,13 +22,25 @@ def getDomainRegex()
   domainregex = /([\w-]+)\.#{domainString}\.?#{domainString}?$/
 end
 
-def getHostBase(host)
-  host_regex = getDomainRegex()
+def getIP(host)
+  num = /\d|[01]?\d\d|2[0-4]\d|25[0-5]/
+  ip_regex = /^(#{num}\.){3}#{num}$/
+  ret = ip_regex.match(host)
+end
 
-  host_base = host
+def getHostBase(host)
+  ret = getIP(host)
+  if ret != nil
+    return ret[0]
+  end
+
+  host_regex = getDomainRegex()
   ret = host_regex.match(host)
   if ret != nil
     host_base = ret[0]
+  else
+    host_base = nil
   end
   host_base
 end
+
