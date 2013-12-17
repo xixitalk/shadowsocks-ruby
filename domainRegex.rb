@@ -2,7 +2,10 @@
 
 $TopDomain = ['com','co','edu','gov','net','org','mil','info','name','xxx','mobi','tel','post','biz','pro']
 
+$domainRegex = nil
+
 def getDomainRegex()
+  if $domainRegex != nil then return $domainRegex end
   countryDomain = []
   cfg_file = File.open('country_domain.txt')
   cfg_file.each do |line|
@@ -19,7 +22,7 @@ def getDomainRegex()
     i += 1
   }
   domainString += ")"
-  domainregex = /([\w-]+)\.#{domainString}\.?#{domainString}?$/
+  $domainRegex = /([\w-]+)\.#{domainString}\.?#{domainString}?$/
 end
 
 def getIP(host)

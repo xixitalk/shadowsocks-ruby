@@ -75,6 +75,7 @@ def writeList2File
 end
 
 def isClassify(host_base)
+  if host_base==nil then return true end
   ret = if $directList_fast.include?(host_base.to_sym.object_id) or $blockList_fast.include?(host_base.to_sym.object_id) then true
         else false end
 end
@@ -82,6 +83,7 @@ end
 def add2OtherDict(host,port)
   if host == nil or port == nil then return end
   host_base = getHostBase(host)
+  if host_base == nil then return end
   if isClassify(host_base) then return end  
   $otherDict[host] = port
 end
@@ -110,6 +112,7 @@ end
 
 def isProxyConnectFunc(host)
   host_base = getHostBase(host)
+  if host_base == nil then false end
   status = if $blockList_fast.include?(host_base.to_sym.object_id) then true 
   else false end 
 end
